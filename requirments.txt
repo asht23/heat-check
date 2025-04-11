@@ -1,5 +1,6 @@
 streamlit
 plotly
+plotly.express
 nba_api
 pandas
 requests

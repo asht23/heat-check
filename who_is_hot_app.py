@@ -4,6 +4,7 @@ import streamlit as st
 import plotly.express as px
 from nba_api.stats.endpoints import playergamelog
 from nba_api.stats.static import players
+from nba_api.stats.endpoints import playercareerstats
 import pandas as pd
 import requests
 import time
@@ -29,6 +30,20 @@ def get_recent_stats(player_id, num_games):
 def get_player_image_url(name):
     formatted_name = name.lower().replace(" ", "_")
     return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{formatted_name}.png"
+
+def get_season_averages(player_id):
+    career = playercareerstats.PlayerCareerStats(player_id=player_id)
+    df = career.get_data_frames()[0]
+    latest_season = df[df["SEASON_ID"] == "2023-24"]
+    if not latest_season.empty:
+        return {
+            "PTS": latest_season.iloc[0]["PTS"],
+            "REB": latest_season.iloc[0]["REB"],
+            "AST": latest_season.iloc[0]["AST"],
+            "FG_PCT": latest_season.iloc[0]["FG_PCT"]
+        }
+    else:
+        return None
 
 # App UI
 st.title("🏀 Who's Hot?")
@@ -88,6 +103,38 @@ if st.button("Show Comparison"):
                 st.subheader("📊 Stat Averages")
                 avg_stats = all_stats.groupby("Player")[selected_stats].mean().round(2)
                 st.table(avg_stats)
+                st.subheader("📊 Heating Up or Cooling Down?")
+
+                threshold = 0.05  # 5% margin
+                
+                for player in avg_stats.index:
+                    avg_pts = avg_stats.loc[player, "PTS"]
+                    avg_fg = avg_stats.loc[player, "FG_PCT"]
+                    avg_ast = avg_stats.loc[player, "AST"]
+                    avg_reb = avg_stats.loc[player, "REB"]
+                
+                    pid = get_player_id(player)
+                    season_avg = get_season_averages(pid)
+                
+                    if season_avg:
+                        comments = []
+                        for stat in selected_stats:
+                            recent = avg_stats.loc[player, stat]
+                            season = season_avg[stat]
+                            if season == 0:
+                                continue  # skip stat if season value is 0
+                            diff = (recent - season) / season
+                            if diff > threshold:
+                                comments.append(f"⬆️ {stat} (heating up)")
+                            elif diff < -threshold:
+                                comments.append(f"⬇️ {stat} (cooling down)")
+                            else:
+                                comments.append(f"➖ {stat} (stable)")
+                
+                        summary = ", ".join(comments)
+                        st.markdown(f"**{player}** is: {summary}")
+                    else:
+                        st.warning(f"Could not load season averages for {player}")
 
                 # Plotting
                 plot_df = all_stats.melt(

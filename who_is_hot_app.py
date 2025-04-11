@@ -18,13 +18,26 @@ def get_player_id(name):
     return None
 
 # Helper to get game log data
+from datetime import datetime
+
+# Show when data was updated
+st.caption(f"📅 Data updated: {datetime.now().strftime('%B %d, %Y – %I:%M %p')}")
+
+# Pull recent stats from current season
 def get_recent_stats(player_id, num_games):
     time.sleep(0.5)
-    gamelog = playergamelog.PlayerGameLog(player_id=player_id, season='2023')
+
+    # Automatically detect the current season
+    if datetime.now().month < 10:
+        current_season = f"{datetime.now().year - 1}-{str(datetime.now().year)[-2:]}"
+    else:
+        current_season = f"{datetime.now().year}-{str(datetime.now().year + 1)[-2:]}"
+        
     df = gamelog.get_data_frames()[0]
     df = df.head(num_games)[['GAME_DATE', 'PTS', 'REB', 'AST', 'FG_PCT']]
-    df = df[::-1]
+    df = df[::-1]  # Show oldest to newest
     return df
+
 
 # Helper to get player image URL from NBA CDN
 def get_player_image_url(name):

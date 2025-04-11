@@ -90,10 +90,10 @@ if st.button("Show Comparison"):
                 st.subheader("Player Headshots")
                 img_col1, img_col2 = st.columns(2)
                 with img_col1:
-                    st.image(get_player_image_url(player1_name), caption=player1_name, use_column_width=True)
+                    st.image(get_player_image_url(player1_name), caption=player1_name, use_container_width=True)
                 if player2_id:
                     with img_col2:
-                        st.image(get_player_image_url(player2_name), caption=player2_name, use_column_width=True)
+                        st.image(get_player_image_url(player2_name), caption=player2_name, use_container_width=True)
 
                 # Data Table
                 st.subheader("Game Stats")

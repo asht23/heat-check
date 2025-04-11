@@ -108,11 +108,6 @@ if st.button("Show Comparison"):
                 threshold = 0.05  # 5% margin
                 
                 for player in avg_stats.index:
-                    avg_pts = avg_stats.loc[player, "PTS"]
-                    avg_fg = avg_stats.loc[player, "FG_PCT"]
-                    avg_ast = avg_stats.loc[player, "AST"]
-                    avg_reb = avg_stats.loc[player, "REB"]
-                
                     pid = get_player_id(player)
                     season_avg = get_season_averages(pid)
                 

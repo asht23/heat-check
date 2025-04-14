@@ -141,19 +141,28 @@ if st.button("Show Comparison"):
                         st.warning(f"Could not load season averages for {player}")
 
                 # Plotting
+                # Reshape the stats so we can plot by game, stat, and player
                 plot_df = all_stats.melt(
                     id_vars=["GAME_DATE", "Player"],
                     value_vars=selected_stats,
                     var_name="Stat",
                     value_name="Value")
 
+                # Create a unique legend label: "LeBron - PTS", etc.
+                plot_df["Legend"] = plot_df["Player"] + " - " + plot_df["Stat"]
+
+                # Build a grouped bar chart
                 fig = px.bar(
                     plot_df,
                     x="GAME_DATE",
                     y="Value",
-                    color="Player",
-                    line_dash="Stat",
-                    markers=True,
+                    color="Legend",
+                    barmode="group",  # <- this makes it side-by-side
                     title=f"{player1_name} vs {player2_name}" if player2_id else f"{player1_name} - Stats Over Last {num_games} Games")
-                fig.update_layout(xaxis_title="Game Date", yaxis_title="Stat Value", hovermode="x unified")
+
+                fig.update_layout(
+                    xaxis_title="Game Date",
+                    yaxis_title="Stat Value",
+                    hovermode="x unified")
+
                 st.plotly_chart(fig)

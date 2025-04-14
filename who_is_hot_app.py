@@ -1,5 +1,3 @@
-# who_is_hot_compare_app.py (fully upgraded)
-
 import streamlit as st
 import plotly.express as px
 from nba_api.stats.endpoints import playergamelog
@@ -46,7 +44,7 @@ def get_player_image_url(name):
 def get_season_averages(player_id):
     career = playercareerstats.PlayerCareerStats(player_id=player_id)
     df = career.get_data_frames()[0]
-    latest_season = df[df["SEASON_ID"] == "2023-24"]
+    latest_season = df[df["SEASON_ID"] == "2024-25"]
     if not latest_season.empty:
         return {
             "PTS": latest_season.iloc[0]["PTS"],
@@ -58,8 +56,8 @@ def get_season_averages(player_id):
         return None
 
 # App UI
-st.title("🏀 Who's Hot?")
-st.markdown("Compare one or two NBA players over a number of recent games.")
+st.title("Who's Hot?")
+st.markdown("See what NBA player's are Hot🔥 or Cold🥶 based on recent performances!")
 
 col1, col2 = st.columns(2)
 
@@ -74,8 +72,7 @@ num_games = st.slider("Number of Recent Games", min_value=1, max_value=20, value
 selected_stats = st.multiselect(
     "Select which stats to include in the graph:",
     ["PTS", "REB", "AST", "FG_PCT"],
-    default=["PTS", "REB", "AST", "FG_PCT"]
-)
+    default=["PTS", "REB", "AST", "FG_PCT"])
 
 if st.button("Show Comparison"):
     if player1_name:
@@ -115,7 +112,7 @@ if st.button("Show Comparison"):
                 st.subheader("📊 Stat Averages")
                 avg_stats = all_stats.groupby("Player")[selected_stats].mean().round(2)
                 st.table(avg_stats)
-                st.subheader("📊 Heating Up or Cooling Down?")
+                st.subheader("Heating Up🔥 or Cooling Down🥶?")
 
                 threshold = 0.05  # 5% margin
                 
@@ -132,11 +129,11 @@ if st.button("Show Comparison"):
                                 continue  # skip stat if season value is 0
                             diff = (recent - season) / season
                             if diff > threshold:
-                                comments.append(f"⬆️ {stat} (heating up)")
+                                comments.append(f"⬆️ {stat} (Heating Up🔥)")
                             elif diff < -threshold:
-                                comments.append(f"⬇️ {stat} (cooling down)")
+                                comments.append(f"⬇️ {stat} (Cooling Down🥶)")
                             else:
-                                comments.append(f"➖ {stat} (stable)")
+                                comments.append(f"➖ {stat} (Stable)")
                 
                         summary = ", ".join(comments)
                         st.markdown(f"**{player}** is: {summary}")
@@ -150,7 +147,7 @@ if st.button("Show Comparison"):
                     var_name="Stat",
                     value_name="Value")
 
-                fig = px.line(
+                fig = px.bar(
                     plot_df,
                     x="GAME_DATE",
                     y="Value",

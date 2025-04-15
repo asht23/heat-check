@@ -112,33 +112,40 @@ if st.button("Show Comparison"):
                 st.subheader("📊 Stat Averages")
                 avg_stats = all_stats.groupby("Player")[selected_stats].mean().round(2)
                 st.table(avg_stats)
+
                 st.subheader("Heating Up🔥 or Cooling Down🥶?")
 
-                threshold = 0.05  # 5% margin
-                
-                for player in avg_stats.index:
-                    pid = get_player_id(player)
-                    season_avg = get_season_averages(pid)
-                
-                    if season_avg:
-                        comments = []
-                        for stat in selected_stats:
-                            recent = avg_stats.loc[player, stat]
-                            season = season_avg[stat]
-                            if season == 0:
-                                continue  # skip stat if season value is 0
-                            diff = (recent - season) / season
-                            if diff > threshold:
-                                comments.append(f"⬆️ {stat} (Heating Up🔥)")
-                            elif diff < -threshold:
-                                comments.append(f"⬇️ {stat} (Cooling Down🥶)")
-                            else:
-                                comments.append(f"➖ {stat} (Stable)")
-                
-                        summary = ", ".join(comments)
-                        st.markdown(f"**{player}** is: {summary}")
-                    else:
-                        st.warning(f"Could not load season averages for {player}")
+                threshold = 0.05  # 5% change threshold
+
+                for player in all_stats["Player"].unique():
+                    player_df = all_stats[all_stats["Player"] == player]
+                    
+                    if len(player_df) < recent_cutoff + 1:
+                        st.warning(f"Not enough games to analyze trend for {player}.")
+                        continue
+
+                    recent_games = player_df.tail(recent_cutoff)
+                    baseline_games = player_df.head(len(player_df) - recent_cutoff)
+
+                    recent_avg = recent_games[selected_stats].mean()
+                    baseline_avg = baseline_games[selected_stats].mean()
+
+                    comments = []
+                    for stat in selected_stats:
+                        baseline_val = baseline_avg[stat]
+                        if baseline_val == 0:
+                            continue
+                        diff = (recent_avg[stat] - baseline_val) / baseline_val
+                        if diff > threshold:
+                            comments.append(f"⬆️ {stat} (Heating Up🔥)")
+                        elif diff < -threshold:
+                            comments.append(f"⬇️ {stat} (Cooling Down🥶)")
+                        else:
+                            comments.append(f"➖ {stat} (Stable)")
+
+                    summary = ", ".join(comments)
+                    st.markdown(f"**{player}** is: {summary}")
+
 
                 # Plotting
                 # Reshape the stats so we can plot by game, stat, and player

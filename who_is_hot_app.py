@@ -67,7 +67,12 @@ with col2:
     player2_name = st.text_input("Player 2 Name (Optional)", value="Stephen Curry")
 
 num_games = st.slider("Number of Recent Games", min_value=1, max_value=20, value=5)
-
+recent_cutoff = st.slider(
+    "Number of Most Recent Games to Compare (Hot/Cold Window)", 
+    min_value=1, 
+    max_value=num_games - 1, 
+    value=min(3, num_games - 1)
+)
 # Stat selector
 selected_stats = st.multiselect(
     "Select which stats to include in the graph:",

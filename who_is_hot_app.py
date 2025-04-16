@@ -36,14 +36,7 @@ def get_recent_stats(player_id, num_games):
 # Gets NBA player headshot URL from player ID
 def get_player_image_url(player_id):
     return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png"
-  
-# Stat filter buttons (one stat at a time)
-selected_stats = st.multiselect(
-    "Pick which stats to graph",
-    options=["PTS", "REB", "AST", "FG_PCT"],
-    default=["PTS", "REB", "AST", "FG_PCT"])
 
-# Heating Up or Cooling Down Analysis
 # Heating Up or Cooling Down Analysis
 def analyze_trend(player_stats, player_name, selected_stats, recent_check):
     if len(player_stats) < recent_check + 1:
@@ -106,6 +99,13 @@ recent_check = st.slider(
     min_value=1,
     max_value=num_games - 1,
     value=min(3, num_games - 1))
+
+# Stat selector buttons
+selected_stats = st.multiselect(
+    "Pick which stats to graph",
+    options=["PTS", "REB", "AST", "FG_PCT"],
+    default=["PTS", "REB", "AST", "FG_PCT"])
+
 
 if st.button('Analyze'):
 

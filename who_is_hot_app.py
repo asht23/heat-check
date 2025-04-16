@@ -71,17 +71,17 @@ def analyze_trend(player_stats, player_name, selected_stats, recent_check):
 #Building Streamlit UI Inputs
 
 # Title and Description
-st.title("Who's Hot?🔥")
+st.title("NBA Player Heat Check?🔥")
 st.markdown("See what NBA player's are Hot🔥 or Cold❄️ based on recent performances!") # Markdown is used for text customization
 
 # Player name inputs
 col1, col2 = st.columns(2)
 
 with col1:
-    player1 = st.text_input("Enter Player 1 Name")
+    player1 = st.text_input("Enter Player 1's Name")
 
 with col2:
-    player2 = st.text_input("Enter Player 2 Name (Optional)")
+    player2 = st.text_input("Enter Player 2's Name (Optional)")
 
 # How many recent games to look at
 num_games = st.slider("How many recent games do you want to analyze?", min_value=1, max_value=20, value=5)
@@ -93,11 +93,9 @@ recent_check = st.slider(
     max_value=num_games - 1,
     value=min(3, num_games - 1))
 
-# Stat selector
-selected_stats = st.multiselect(
-    "Pick which stats to graph",
-    options=["PTS", "REB", "AST", "FG_PCT"],
-    default=["PTS", "REB", "AST", "FG_PCT"])
+# Stat filter buttons (one stat at a time)
+stat_options = ["PTS", "REB", "AST", "FG_PCT"]
+selected_stat = st.radio("Pick a stat to graph", stat_options)
 
 if st.button('Analyze'):
 
@@ -137,11 +135,11 @@ if st.button('Analyze'):
       stats_col1, stats_col2 = st.columns(2)
 
       with stats_col1:
-          st.subheader(f"{player1}'s Game Stats")
+          st.subheader(f"{player1}'s Stats")
           st.dataframe(player1_stats)
       if player2_id:
           with stats_col2:
-              st.subheader(f"{player2}'s Game Stats")
+              st.subheader(f"{player2}'s Stats")
               st.dataframe(player2_stats)
 
       # Trend Analysis
@@ -153,8 +151,8 @@ if st.button('Analyze'):
       plot_col1, plot_col2 = st.columns(2)
 
       with plot_col1:
-          st.subheader(f"{player1}'s Stat Trends")
-          plot_df1 = player1_stats.melt(id_vars="GAME_DATE", value_vars=selected_stats, var_name="Stat", value_name="Value")
+          st.subheader(f"{player1}'s Stat Trends") 
+          plot_df1 = player1_stats.melt(id_vars="GAME_DATE", value_vars=[selected_stat], var_name="Stat", value_name="Value")
           fig1 = px.bar(plot_df1, x="GAME_DATE", y="Value", color="Stat", barmode="group")
           fig1.update_layout(title=f"{player1} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")
           st.plotly_chart(fig1)
@@ -162,7 +160,7 @@ if st.button('Analyze'):
       if player2_id:
           with plot_col2:
               st.subheader(f"{player2}'s Stat Trends")
-              plot_df2 = player2_stats.melt(id_vars="GAME_DATE", value_vars=selected_stats, var_name="Stat", value_name="Value")
+              plot_df2 = player2_stats.melt(id_vars="GAME_DATE", value_vars=[selected_stat], var_name="Stat", value_name="Value")
               fig2 = px.bar(plot_df2, x="GAME_DATE", y="Value", color="Stat", barmode="group")
               fig2.update_layout(title=f"{player2} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")
               st.plotly_chart(fig2)

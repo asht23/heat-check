@@ -58,9 +58,9 @@ def analyze_trend(player_stats, player_name, selected_stats, recent_check):
       continue
     diff = (recent_avg[stat] - baseline_val) / baseline_val
     if diff > threshold:
-      comments.append(f"{stat}: Heating Up")
+      comments.append(f"{stat}: Heating Up 🔥")
     elif diff < -threshold:
-      comments.append(f"{stat}: Cooling Down")
+      comments.append(f"{stat}: Cooling Down ❄️")
     else:
       comments.append(f"{stat}: Stable")
 

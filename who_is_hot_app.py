@@ -36,37 +36,51 @@ def get_recent_stats(player_id, num_games):
 # Gets NBA player headshot URL from player ID
 def get_player_image_url(player_id):
     return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png"
+  
+# Stat filter buttons (one stat at a time)
+selected_stats = st.multiselect(
+    "Pick which stats to graph",
+    options=["PTS", "REB", "AST", "FG_PCT"],
+    default=["PTS", "REB", "AST", "FG_PCT"])
 
 # Heating Up or Cooling Down Analysis
+# Heating Up or Cooling Down Analysis
 def analyze_trend(player_stats, player_name, selected_stats, recent_check):
-  if len(player_stats) < recent_check + 1:
-    st.warning(f"Not enough games to analyze trend for {player_name}.")
-    return
+    if len(player_stats) < recent_check + 1:
+        st.warning(f"Not enough games to analyze trend for {player_name}.")
+        return
 
-  recent_games = player_stats.tail(recent_check)
-  baseline_games = player_stats.head(len(player_stats) - recent_check)
+    # Split into recent vs. baseline games
+    recent_games = player_stats.tail(recent_check)
+    baseline_games = player_stats.head(len(player_stats) - recent_check)
 
-  recent_avg = recent_games[selected_stats].mean()
-  baseline_avg = baseline_games[selected_stats].mean()
+    # Calculate average for each group of games
+    recent_avg = recent_games[selected_stats].mean()
+    baseline_avg = baseline_games[selected_stats].mean()
 
-  threshold = 0.05  # 5% change threshold
-  comments = []
+    threshold = 0.05  # 5% change to count as hot/cold
+    comments = []
 
-  for stat in selected_stats:
-    baseline_val = baseline_avg[stat]
-    if baseline_val == 0:
-      continue
-    diff = (recent_avg[stat] - baseline_val) / baseline_val
-    if diff > threshold:
-      comments.append(f"{stat}: Heating Up 🔥")
-    elif diff < -threshold:
-      comments.append(f"{stat}: Cooling Down ❄️")
-    else:
-      comments.append(f"{stat}: Stable")
+    # Loop through each selected stat
+    for stat in selected_stats:
+        baseline_val = baseline_avg[stat]
+        if baseline_val == 0:
+            continue  # avoid division by zero
 
-  st.subheader(f"{player_name}'s Trend Analysis")
-  for comment in comments:
-    st.markdown(f"- {comment}")
+        diff = (recent_avg[stat] - baseline_val) / baseline_val
+
+        if diff > threshold:
+            comments.append(f"{stat}: Heating Up")
+        elif diff < -threshold:
+            comments.append(f"{stat}: Cooling Down")
+        else:
+            comments.append(f"{stat}: Stable")
+
+    # Output results
+    st.subheader(f"{player_name}'s Trend Analysis")
+    for comment in comments:
+        st.markdown(f"- {comment}")
+
 
 #Building Streamlit UI Inputs
 
@@ -92,10 +106,6 @@ recent_check = st.slider(
     min_value=1,
     max_value=num_games - 1,
     value=min(3, num_games - 1))
-
-# Stat filter buttons (one stat at a time)
-stat_options = ["PTS", "REB", "AST", "FG_PCT"]
-selected_stat = st.radio("Pick a stat to graph", stat_options)
 
 if st.button('Analyze'):
 
@@ -152,7 +162,7 @@ if st.button('Analyze'):
 
       with plot_col1:
           st.subheader(f"{player1}'s Stat Trends") 
-          plot_df1 = player1_stats.melt(id_vars="GAME_DATE", value_vars=[selected_stat], var_name="Stat", value_name="Value")
+          plot_df1 = player1_stats.melt(id_vars="GAME_DATE", value_vars=selected_stats, var_name="Stat", value_name="Value")
           fig1 = px.bar(plot_df1, x="GAME_DATE", y="Value", color="Stat", barmode="group")
           fig1.update_layout(title=f"{player1} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")
           st.plotly_chart(fig1)
@@ -160,7 +170,7 @@ if st.button('Analyze'):
       if player2_id:
           with plot_col2:
               st.subheader(f"{player2}'s Stat Trends")
-              plot_df2 = player2_stats.melt(id_vars="GAME_DATE", value_vars=[selected_stat], var_name="Stat", value_name="Value")
+              plot_df2 = player2_stats.melt(id_vars="GAME_DATE", value_vars=selected_stats, var_name="Stat", value_name="Value")
               fig2 = px.bar(plot_df2, x="GAME_DATE", y="Value", color="Stat", barmode="group")
               fig2.update_layout(title=f"{player2} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")
               st.plotly_chart(fig2)

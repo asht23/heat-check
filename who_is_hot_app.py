@@ -50,24 +50,29 @@ def analyze_trend(player_stats, player_name, selected_stats, recent_check):
     # Calculate average for each group of games
     recent_avg = recent_games[selected_stats].mean()
     baseline_avg = baseline_games[selected_stats].mean()
+    baseline_std = baseline_games[selected_stats].std()  # Get standard deviation
+
 
     threshold = 0.05  # 5% change to count as hot/cold
     comments = []  # Collect trend comments for each stat
 
     # Loop through each selected stat
     for stat in selected_stats:
-        baseline_val = baseline_avg[stat]
-        if baseline_val == 0:
-            continue  # avoid division by zero
+      baseline_val = baseline_avg[stat]
+      std_val = baseline_std[stat]
+    
+      if pd.isna(std_val) or std_val == 0:
+        continue  # skip if we can't calculate std dev
 
-        diff = (recent_avg[stat] - baseline_val) / baseline_val
+      diff = recent_avg[stat] - baseline_val
 
-        if diff > threshold:
-            comments.append(f"{stat}: Heating Up 🔥")
-        elif diff < -threshold:
-            comments.append(f"{stat}: Cooling Down ❄️")
-        else:
-            comments.append(f"{stat}: Stable")
+      if diff > std_val:
+        comments.append(f"{stat}: Heating Up 🔥")
+      elif diff < -std_val:
+        comments.append(f"{stat}: Cooling Down ❄️")
+      else:
+        comments.append(f"{stat}: Stable")
+
 
     # Output results
     st.subheader(f"{player_name}'s Trend Analysis")
@@ -164,7 +169,7 @@ if st.button('Analyze'):
           plot_df1 = player1_stats.melt(id_vars="GAME_DATE", value_vars=selected_stats, var_name="Stat", value_name="Value")  # Reformat Player 1 stats
           fig1 = px.bar(plot_df1, x="GAME_DATE", y="Value", color="Stat", barmode="group")  # Build bar chart for Player 1
           fig1.update_layout(title=f"{player1} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")  # Customize labels
-          st.plotly_chart(fig1)  # Show Player 1 chart
+          st.plotly_chart(fig1)  # Show Player 1 chart 
 
       if player2_id:
           with plot_col2:

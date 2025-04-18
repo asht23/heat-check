@@ -5,6 +5,7 @@ import plotly.express as px  # For building visual graphs
 import time  # For slowing down API requests to avoid errors
 from datetime import datetime  # Used to determine the current NBA season
 import unicodedata 
+import re 
 
 # NBA API Modules
 from nba_api.stats.static import players  # Get the list of NBA players to find player IDs

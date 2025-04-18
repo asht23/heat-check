@@ -11,8 +11,6 @@ import re
 from nba_api.stats.static import players  # Get the list of NBA players to find player IDs
 from nba_api.stats.endpoints import playergamelog  # Used to pull game-by-game stats for a player
 
-original_name1 = ""
-original_name2 = ""
 
 # Converting Player Name to NBA ID (used to pull their stats)
 def normalize_name(s: str) -> str:
@@ -31,13 +29,9 @@ def find_player_id(name):
   all_players = players.get_players()  # Get all NBA players
   for player in all_players:
     if normalize_name(player["full_name"]) == normalize_name(name):
-      if len(original_name1) > 0:
-        original_name2 = player["full_name"]
-      else: 
-        original_name1 = player["full_name"]
-      return player['id']  # Return the matching player ID
+      return player['id'], player["full_name"]  # Return the matching player ID
   else:
-    return None  # If not found, return None
+    return None, None # If not found, return None
 
 # Pulling Recent Game Stats for a Player
 def get_recent_stats(player_id, num_games):
@@ -134,12 +128,15 @@ selected_stats = st.multiselect(
 
 # Main action button
 if st.button('Analyze'):
-
+ 
+  original_name1 = None
+  original_name2 = None
+  
   if player1:
-    player1_id = find_player_id(player1)  # Gets player 1's ID 
+    player1_id, original_name1 = find_player_id(player1)  # Gets player 1's ID 
 
     if player2:
-      player2_id = find_player_id(player2)  # Gets player 2's ID
+      player2_id, original_name2 = find_player_id(player2)  # Gets player 2's ID
     else:
       player2_id = None  # Sets player 2 to None so we know only one player is being analyzed
 

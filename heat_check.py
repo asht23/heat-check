@@ -5,11 +5,14 @@ import plotly.express as px  # For building visual graphs
 import time  # For slowing down API requests to avoid errors
 from datetime import datetime  # Used to determine the current NBA season
 import unicodedata 
-import re 
+import re
 
 # NBA API Modules
 from nba_api.stats.static import players  # Get the list of NBA players to find player IDs
 from nba_api.stats.endpoints import playergamelog  # Used to pull game-by-game stats for a player
+
+original_name1 = ""
+original_name2 = ""
 
 # Converting Player Name to NBA ID (used to pull their stats)
 def normalize_name(s: str) -> str:
@@ -28,6 +31,10 @@ def find_player_id(name):
   all_players = players.get_players()  # Get all NBA players
   for player in all_players:
     if normalize_name(player["full_name"]) == normalize_name(name):
+      if len(original_name1) > 0:
+        original_name2 = player["full_name"]
+      else: 
+        original_name1 = player["full_name"]
       return player['id']  # Return the matching player ID
   else:
     return None  # If not found, return None
@@ -143,11 +150,11 @@ if st.button('Analyze'):
     else:  # if both players are valid then continue
       with st.spinner("Pulling game stats..."):  # Show loading spinner while data loads
         player1_stats = get_recent_stats(player1_id, num_games)  # Step 1: Get recent game stats for Player 1
-        player1_stats["Player"] = player1  # Step 2: Add a "Player" column to label the data
+        player1_stats["Player"] = original_name1  # Step 2: Add a "Player" column to label the data
 
         if player2_id:
           player2_stats = get_recent_stats(player2_id, num_games)  # Get stats for Player 2
-          player2_stats["Player"] = player2  # Label Player 2's stats
+          player2_stats["Player"] = original_name2  # Label Player 2's stats
 
       # Show player headshots side-by-side
       img_col1, img_col2 = st.columns(2)  # Two side-by-side image columns

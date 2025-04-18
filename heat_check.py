@@ -183,20 +183,20 @@ if st.button('Analyze'):
       plot_col1, plot_col2 = st.columns(2)  # Create side-by-side graph columns
 
       with plot_col1:
-          st.subheader(f"{player1}'s Stat Trends")  # Heading above Player 1 graph
+          st.subheader(f"{original_name1}'s Stat Trends")  # Heading above Player 1 graph
           plot_df1 = player1_stats.melt(id_vars="GAME_DATE", value_vars=selected_stats, var_name="Stat", value_name="Value")  # Reformat Player 1 stats
           fig1 = px.bar(plot_df1, x="GAME_DATE", y="Value", color="Stat", barmode="group")  # Build bar chart for Player 1
-          fig1.update_layout(title=f"{player1} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")  # Customize labels
+          fig1.update_layout(title=f"{original_name1} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")  # Customize labels
           st.plotly_chart(fig1)  # Show Player 1 chart 
       
             # Extra FG% Line Chart for Player 1
       if "FG_PCT" in selected_stats and "FG_PCT" in player1_stats.columns:
-          st.subheader(f"{player1}'s Field Goal Percentage Trend")
+          st.subheader(f"{original_name1}'s Field Goal Percentage Trend")
           fg_chart1 = px.line(
               player1_stats,
               x="GAME_DATE",
               y="FG_PCT",
-              title=f"{player1} - FG% Over Last {num_games} Games",
+              title=f"{original_name1} - FG% Over Last {num_games} Games",
               markers=True)
           fg_chart1.update_layout(xaxis_title="Game Date", yaxis_title="FG%", hovermode="x unified")
           st.plotly_chart(fg_chart1)
@@ -204,19 +204,19 @@ if st.button('Analyze'):
 
       if player2_id:
           with plot_col2:
-              st.subheader(f"{player2}'s Stat Trends")  # Heading above Player 2 graph
+              st.subheader(f"{original_name2}'s Stat Trends")  # Heading above Player 2 graph
               plot_df2 = player2_stats.melt(id_vars="GAME_DATE", value_vars=selected_stats, var_name="Stat", value_name="Value")  # Reformat Player 2 stats
               fig2 = px.bar(plot_df2, x="GAME_DATE", y="Value", color="Stat", barmode="group")  # Build bar chart for Player 2
-              fig2.update_layout(title=f"{player2} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")  # Customize labels
+              fig2.update_layout(title=f"{original_name2} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")  # Customize labels
               st.plotly_chart(fig2)  # Show Player 2 chart
                     # Extra FG% Line Chart for Player 2
           if "FG_PCT" in selected_stats and "FG_PCT" in player2_stats.columns:
-              st.subheader(f"{player2}'s Field Goal Percentage Trend")
+              st.subheader(f"{original_name2}'s Field Goal Percentage Trend")
               fg_chart2 = px.line(
                   player2_stats,
                   x="GAME_DATE",
                   y="FG_PCT",
-                  title=f"{player2} - FG% Over Last {num_games} Games",
+                  title=f"{original_name2} - FG% Over Last {num_games} Games",
                   markers=True)
               fg_chart2.update_layout(xaxis_title="Game Date", yaxis_title="FG%", hovermode="x unified")
               st.plotly_chart(fg_chart2)

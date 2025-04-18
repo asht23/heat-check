@@ -167,11 +167,11 @@ if st.button('Analyze'):
       stats_col1, stats_col2 = st.columns(2)
 
       with stats_col1:
-          st.subheader(f"{player1}'s Stats")  # Table heading for Player 1
+          st.subheader(f"{original_name1}'s Stats")  # Table heading for Player 1
           st.dataframe(player1_stats)  # Table for Player 1 stats
       if player2_id:
           with stats_col2:
-              st.subheader(f"{player2}'s Stats")  # Table heading for Player 2
+              st.subheader(f"{original_name2}'s Stats")  # Table heading for Player 2
               st.dataframe(player2_stats)  # Table for Player 2 stats
 
       # Trend Analysis

@@ -175,9 +175,9 @@ if st.button('Analyze'):
               st.dataframe(player2_stats)  # Table for Player 2 stats
 
       # Trend Analysis
-      analyze_trend(player1_stats, player1, selected_stats, recent_check)  # Run trend logic for Player 1
+      analyze_trend(player1_stats, original_name1, selected_stats, recent_check)  # Run trend logic for Player 1
       if player2_id:
-          analyze_trend(player2_stats, player2, selected_stats, recent_check)  # Run trend logic for Player 2
+          analyze_trend(player2_stats, original_name2, selected_stats, recent_check)  # Run trend logic for Player 2
 
       # Plotting each player's stats
       plot_col1, plot_col2 = st.columns(2)  # Create side-by-side graph columns

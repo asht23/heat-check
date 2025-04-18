@@ -4,8 +4,8 @@ import pandas as pd  # For handling and analyzing data tables
 import plotly.express as px  # For building visual graphs
 import time  # For slowing down API requests to avoid errors
 from datetime import datetime  # Used to determine the current NBA season
-import unicodedata 
-import re
+import unicodedata # # lets us break accented letters apart so we can drop the accents
+import re # gives us tools to find and replace text patterns for cleaning names
 
 # NBA API Modules
 from nba_api.stats.static import players  # Get the list of NBA players to find player IDs
@@ -13,17 +13,20 @@ from nba_api.stats.endpoints import playergamelog  # Used to pull game-by-game s
 
 
 # Converting Player Name to NBA ID (used to pull their stats)
-def normalize_name(s: str) -> str:
-    # 1. Unicode‐decompose accents, then drop combining marks
-    s = unicodedata.normalize('NFKD', s)
-    s = ''.join(ch for ch in s if not unicodedata.combining(ch))
-    # 2. Lowercase
-    s = s.lower()
-    # 3. Remove anything that's not alphanumeric or whitespace
-    s = re.sub(r"[^a-z0-9\s]", "", s)
-    # 4. Collapse extra spaces
-    s = re.sub(r"\s+", " ", s).strip()
-    return s
+def normalize_name(name):
+    # 1. Trim spaces
+    name = name.strip()
+    # 2. Remove accents
+    decomposed = unicodedata.normalize('NFKD', name)
+    without_accents = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+    # 3. Lowercase
+    lowercase = without_accents.lower()
+    # 4. Remove punctuation
+    cleaned = re.sub(r"[^a-z0-9\s]", "", lowercase) # matches any character that is not a lowercase letter, digit, or space and deletes them
+    # 5. Collapse spaces
+    result = re.sub(r"\s+", " ", cleaned).strip() #\s+ will match runs of spaces, "" replaces wtih one space, .strip() removes space
+
+    return result
   
 def find_player_id(name):
   all_players = players.get_players()  # Get all NBA players
@@ -131,7 +134,10 @@ if st.button('Analyze'):
  
   original_name1 = None
   original_name2 = None
-  
+
+  # playerX_id tells you if there’s a valid NBA player,
+  # original_nameX holds the official spelling to label tables and charts 
+    
   if player1:
     player1_id, original_name1 = find_player_id(player1)  # Gets player 1's ID 
 

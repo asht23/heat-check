@@ -4,16 +4,29 @@ import pandas as pd  # For handling and analyzing data tables
 import plotly.express as px  # For building visual graphs
 import time  # For slowing down API requests to avoid errors
 from datetime import datetime  # Used to determine the current NBA season
+import unicodedata 
 
 # NBA API Modules
 from nba_api.stats.static import players  # Get the list of NBA players to find player IDs
 from nba_api.stats.endpoints import playergamelog  # Used to pull game-by-game stats for a player
 
 # Converting Player Name to NBA ID (used to pull their stats)
+def normalize_name(s: str) -> str:
+    # 1. Unicode‐decompose accents, then drop combining marks
+    s = unicodedata.normalize('NFKD', s)
+    s = ''.join(ch for ch in s if not unicodedata.combining(ch))
+    # 2. Lowercase
+    s = s.lower()
+    # 3. Remove anything that's not alphanumeric or whitespace
+    s = re.sub(r"[^a-z0-9\s]", "", s)
+    # 4. Collapse extra spaces
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+  
 def find_player_id(name):
   all_players = players.get_players()  # Get all NBA players
   for player in all_players:
-    if player["full_name"].lower() == name.lower():
+    if normalize_name(player["full_name"]) == normalize_name(name):
       return player['id']  # Return the matching player ID
   else:
     return None  # If not found, return None

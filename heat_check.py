@@ -56,46 +56,45 @@ def get_player_image_url(player_id):
     return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png"  # Direct URL to NBA headshots
 
 # Heating Up or Cooling Down Analysis
-def analyze_trend(player_stats, player_name, selected_stats, recent_check):
-    if len(player_stats) < recent_check + 1:
-        st.warning(f"Not enough games to analyze trend for {player_name}.")
-        return
+def analyze_trend(player_stats, player_name, selected_stats, recent_check):  # Define function to analyze a player’s performance trend
+    if len(player_stats) < recent_check + 1:  # Check if we have at least `recent_check + 1` games worth of data
+        st.warning(f"Not enough games to analyze trend for {player_name}.")  # Warn user in Streamlit
+        return  # Exit early if insufficient data
 
     # Split into recent vs. baseline games
-    recent_games = player_stats.tail(recent_check)
-    baseline_games = player_stats.head(len(player_stats) - recent_check)
+    recent_games = player_stats.tail(recent_check)  # Take the last `recent_check` rows as the recent games
+    baseline_games = player_stats.head(len(player_stats) - recent_check)  # The rest are baseline games
 
     # Calculate average for each group of games
-    recent_avg = recent_games[selected_stats].mean()
-    baseline_avg = baseline_games[selected_stats].mean()
-    baseline_std = baseline_games[selected_stats].std()  # Get standard deviation
+    recent_avg = recent_games[selected_stats].mean()  # Compute mean of each selected stat over recent games
+    baseline_avg = baseline_games[selected_stats].mean()  # Compute mean of each selected stat over baseline games
+    baseline_std = baseline_games[selected_stats].std()  # Compute standard deviation for baseline stats
 
-
-    threshold = 0.05  # 5% change to count as hot/cold
-    comments = []  # Collect trend comments for each stat
+    threshold = 0.05  # Define a 5% threshold for change (not used in this version)
+    comments = []  # Initialize list to collect trend comments
 
     # Loop through each selected stat
     for stat in selected_stats:
-      baseline_val = baseline_avg[stat]
-      std_val = baseline_std[stat]
-    
-      if pd.isna(std_val) or std_val == 0:
-        continue  # skip if we can't calculate std dev
+        baseline_val = baseline_avg[stat]  # Baseline average value for this stat
+        std_val = baseline_std[stat]       # Baseline standard deviation for this stat
 
-      diff = recent_avg[stat] - baseline_val
+        if pd.isna(std_val) or std_val == 0:  # Skip if std dev is NaN or zero (cannot compare)
+            continue  # Move to next stat
 
-      if diff > std_val:
-        comments.append(f"{stat}: Heating Up 🔥")
-      elif diff < -std_val:
-        comments.append(f"{stat}: Cooling Down ❄️")
-      else:
-        comments.append(f"{stat}: Stable")
+        diff = recent_avg[stat] - baseline_val  # Difference between recent and baseline averages
 
+        if diff > std_val:  # If increase is greater than one std dev
+            comments.append(f"{stat}: Heating Up 🔥")  # Mark as trending up
+        elif diff < -std_val:  # If decrease is greater than one std dev
+            comments.append(f"{stat}: Cooling Down ❄️")  # Mark as trending down
+        else:
+            comments.append(f"{stat}: Stable")  # Otherwise, consider the stat stable
 
     # Output results
-    st.subheader(f"{player_name}'s Trend Analysis")
-    for comment in comments:
-        st.markdown(f"- {comment}")
+    st.subheader(f"{player_name}'s Trend Analysis")  # Add a subheader in Streamlit
+    for comment in comments:  # Iterate over generated comments
+        st.markdown(f"- {comment}")  # Display each comment as a markdown bullet
+
 
 
 #Building Streamlit UI Inputs

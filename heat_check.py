@@ -38,18 +38,35 @@ def find_player_id(name):
 
 # Pulling Recent Game Stats for a Player
 def get_recent_stats(player_id, num_games):
-  time.sleep(0.5)  # Wait to avoid hitting API limits
+    time.sleep(0.5)  # avoid API rate limits
 
-  # April 2025 is still the 2024-25 season so use 2024 
-  current_season = str(datetime.now().year - 1) if datetime.now().month < 10 else str(datetime.now().year)
+    # Determine season string (e.g. "2024" for 2024-25 season if before October)
+    current_season = (
+        str(datetime.now().year - 1)
+        if datetime.now().month < 10
+        else str(datetime.now().year))
 
-  # Using the nba_api to fetch game-by-game stats for a specific player and season.
-  gamelog = playergamelog.PlayerGameLog(player_id=player_id, season=current_season)
-  stats_table = gamelog.get_data_frames()[0]  # Get the first (and only) table from the response
-  stats_table = stats_table.head(num_games)[['GAME_DATE','PTS', 'REB', 'AST', 'FG_PCT']]  # Trim and reorder columns
-  stats_table = stats_table[::-1]  # Flips from newest -> oldest to oldest -> newest
+    # 1) Fetch regular season games
+    reg_df = playergamelog.PlayerGameLog(
+        player_id=player_id,
+        season=current_season,
+        season_type_all_star="Regular Season").get_data_frames()[0]
 
-  return stats_table  # Return the cleaned stats table
+    # 2) Fetch playoff games
+    po_df = playergamelog.PlayerGameLog(
+        player_id=player_id,
+        season=current_season,
+        season_type_all_star="Playoffs").get_data_frames()[0]
+
+    # 3) Combine them, newest-first
+    all_games = pd.concat([reg_df, po_df], ignore_index=True)
+
+    # 4) Keep only the columns you need, take the top N rows (newest N games), then flip to oldest→newest
+    stats_table = (all_games[['GAME_DATE', 'PTS', 'REB', 'AST', 'FG_PCT']]
+        .head(num_games)    # newest first
+        .iloc[::-1])         # reverse to oldest→newest
+
+    return stats_table # Return the cleaned stats table
 
 # Gets NBA player headshot URL from player ID
 def get_player_image_url(player_id):

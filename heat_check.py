@@ -39,38 +39,38 @@ def find_player_id(name):
 # Pulling Recent Game Stats for a Player
 def get_recent_stats(player_id, num_games):
     time.sleep(0.5)
-
-    # Determine current season string
     current_season = (
         str(datetime.now().year - 1)
         if datetime.now().month < 10
         else str(datetime.now().year)
     )
 
-    # 1) Fetch regular season logs
     reg_df = playergamelog.PlayerGameLog(
         player_id=player_id,
         season=current_season,
         season_type_all_star="Regular Season"
     ).get_data_frames()[0]
 
-    # 2) Fetch playoff logs
     po_df = playergamelog.PlayerGameLog(
         player_id=player_id,
         season=current_season,
         season_type_all_star="Playoffs"
     ).get_data_frames()[0]
 
-    # 3) Combine & sort by game date (newest first)
     all_games = pd.concat([reg_df, po_df], ignore_index=True)
-    all_games['GAME_DATE'] = pd.to_datetime(all_games['GAME_DATE'])           # parse dates
-    all_games = all_games.sort_values('GAME_DATE', ascending=False)           # newest → oldest
+    all_games['GAME_DATE'] = pd.to_datetime(all_games['GAME_DATE'])
+    all_games = all_games.sort_values('GAME_DATE', ascending=False)
 
-    # 4) Take the most recent num_games, then flip to oldest → newest
     latest = all_games[['GAME_DATE','PTS','REB','AST','FG_PCT']].head(num_games)
     stats_table = latest.sort_values('GAME_DATE').reset_index(drop=True)
 
+    # **FORMAT THE DATES HERE** ↓
+    stats_table['GAME_DATE'] = stats_table['GAME_DATE'].dt.strftime('%b %d, %Y')
+    stats_table['GAME_DATE'] = stats_table['GAME_DATE'].astype(str)
+    # (Or use .dt.date if you just want YYYY-MM-DD)
+
     return stats_table
+
 
 
 # Gets NBA player headshot URL from player ID

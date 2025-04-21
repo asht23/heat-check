@@ -18,7 +18,11 @@ def normalize_name(name):
     name = name.strip()
     # 2. Remove accents
     decomposed = unicodedata.normalize('NFKD', name)
-    without_accents = "".join(ch for ch in decomposed if not unicodedata.combining(ch))
+    filtered_chars = [] # start with an empty list
+    for ch in decomposed:  # check each character
+        if not unicodedata.combining(ch):   # if it’s not an accent mark
+            filtered_chars.append(ch)    # keep the character
+    without_accents = "".join(filtered_chars)   # join back into a string
     # 3. Lowercase
     lowercase = without_accents.lower()
     # 4. Remove punctuation
@@ -37,39 +41,50 @@ def find_player_id(name):
     return None, None # If not found, return None
 
 # Pulling Recent Game Stats for a Player
-def get_recent_stats(player_id, num_games):
-    time.sleep(0.5)
-    current_season = (
-        str(datetime.now().year - 1)
-        if datetime.now().month < 10
-        else str(datetime.now().year)
-    )
+def get_recent_stats(player_id, num_games):  # grab the last `num_games` for a player
+    time.sleep(0.5)  # pause so we don’t hit the NBA API too fast
 
+    # decide which season string to use (e.g. “2024” for 2024‑25 if it’s before October)
+    current_season = (
+        str(datetime.now().year - 1)  # if we’re before Oct, we’re still in last year’s season
+        if datetime.now().month < 10 
+        else str(datetime.now().year))  # otherwise use this year
+
+    # pull all regular‑season games for that season
     reg_df = playergamelog.PlayerGameLog(
         player_id=player_id,
         season=current_season,
-        season_type_all_star="Regular Season"
-    ).get_data_frames()[0]
+        season_type_all_star="Regular Season").get_data_frames()[0]  # get the regular season DataFrame
 
+    # pull all playoff games for the same season
     po_df = playergamelog.PlayerGameLog(
         player_id=player_id,
         season=current_season,
-        season_type_all_star="Playoffs"
-    ).get_data_frames()[0]
+        season_type_all_star="Playoffs").get_data_frames()[0]  # get the playoffs DataFrame
 
+    # stack regular + playoff logs together
     all_games = pd.concat([reg_df, po_df], ignore_index=True)
+
+    # turn the date column into real datetime objects
     all_games['GAME_DATE'] = pd.to_datetime(all_games['GAME_DATE'])
+
+    # sort so the most recent games are at the top
     all_games = all_games.sort_values('GAME_DATE', ascending=False)
 
-    latest = all_games[['GAME_DATE','PTS','REB','AST','FG_PCT']].head(num_games)
+    # pick only the columns we care about and grab the newest `num_games`
+    latest = all_games[['GAME_DATE', 'PTS', 'REB', 'AST', 'FG_PCT']].head(num_games)
+
+    # flip them back into chronological order and reset the index
     stats_table = latest.sort_values('GAME_DATE').reset_index(drop=True)
 
-    # **FORMAT THE DATES HERE** ↓
+    # format the dates as “Apr 11, 2025” (no time)
     stats_table['GAME_DATE'] = stats_table['GAME_DATE'].dt.strftime('%b %d, %Y')
-    stats_table['GAME_DATE'] = stats_table['GAME_DATE'].astype(str)
-    # (Or use .dt.date if you just want YYYY-MM-DD)
 
-    return stats_table
+    # make dates plain strings so the chart shows every label
+    stats_table['GAME_DATE'] = stats_table['GAME_DATE'].astype(str)
+
+    return stats_table  # send back the cleaned, sorted, and formatted table
+
 
 
 

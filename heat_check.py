@@ -38,35 +38,40 @@ def find_player_id(name):
 
 # Pulling Recent Game Stats for a Player
 def get_recent_stats(player_id, num_games):
-    time.sleep(0.5)  # avoid API rate limits
+    time.sleep(0.5)
 
-    # Determine season string (e.g. "2024" for 2024-25 season if before October)
+    # Determine current season string
     current_season = (
         str(datetime.now().year - 1)
         if datetime.now().month < 10
-        else str(datetime.now().year))
+        else str(datetime.now().year)
+    )
 
-    # 1) Fetch regular season games
+    # 1) Fetch regular season logs
     reg_df = playergamelog.PlayerGameLog(
         player_id=player_id,
         season=current_season,
-        season_type_all_star="Regular Season").get_data_frames()[0]
+        season_type_all_star="Regular Season"
+    ).get_data_frames()[0]
 
-    # 2) Fetch playoff games
+    # 2) Fetch playoff logs
     po_df = playergamelog.PlayerGameLog(
         player_id=player_id,
         season=current_season,
-        season_type_all_star="Playoffs").get_data_frames()[0]
+        season_type_all_star="Playoffs"
+    ).get_data_frames()[0]
 
-    # 3) Combine them, newest-first
+    # 3) Combine & sort by game date (newest first)
     all_games = pd.concat([reg_df, po_df], ignore_index=True)
+    all_games['GAME_DATE'] = pd.to_datetime(all_games['GAME_DATE'])           # parse dates
+    all_games = all_games.sort_values('GAME_DATE', ascending=False)           # newest → oldest
 
-    # 4) Keep only the columns you need, take the top N rows (newest N games), then flip to oldest→newest
-    stats_table = (all_games[['GAME_DATE', 'PTS', 'REB', 'AST', 'FG_PCT']]
-        .head(num_games)    # newest first
-        .iloc[::-1])         # reverse to oldest→newest
+    # 4) Take the most recent num_games, then flip to oldest → newest
+    latest = all_games[['GAME_DATE','PTS','REB','AST','FG_PCT']].head(num_games)
+    stats_table = latest.sort_values('GAME_DATE').reset_index(drop=True)
 
-    return stats_table # Return the cleaned stats table
+    return stats_table
+
 
 # Gets NBA player headshot URL from player ID
 def get_player_image_url(player_id):

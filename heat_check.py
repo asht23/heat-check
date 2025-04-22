@@ -31,7 +31,7 @@ def normalize_name(name):
     result = re.sub(r"\s+", " ", cleaned).strip() #\s+ will match runs of spaces, "" replaces wtih one space, .strip() removes space
 
     return result
-  
+
 def find_player_id(name):
   all_players = players.get_players()  # Get all NBA players
   for player in all_players:
@@ -47,7 +47,7 @@ def get_recent_stats(player_id, num_games):  # grab the last `num_games` for a p
     # decide which season string to use (e.g. “2024” for 2024‑25 if it’s before October)
     current_season = (
         str(datetime.now().year - 1)  # if we’re before Oct, we’re still in last year’s season
-        if datetime.now().month < 10 
+        if datetime.now().month < 10
         else str(datetime.now().year))  # otherwise use this year
 
     # pull all regular‑season games for that season
@@ -87,16 +87,17 @@ def get_recent_stats(player_id, num_games):  # grab the last `num_games` for a p
 
 
 
-
 # Gets NBA player headshot URL from player ID
 def get_player_image_url(player_id):
     return f"https://cdn.nba.com/headshots/nba/latest/1040x760/{player_id}.png"  # Direct URL to NBA headshots
 
+
+
 # Heating Up or Cooling Down Analysis
 def analyze_trend(player_stats, player_name, selected_stats, recent_check):  # Define function to analyze a player’s performance trend
-    if len(player_stats) < recent_check + 1:  # Check if we have at least `recent_check + 1` games worth of data
-        st.warning(f"Not enough games to analyze trend for {player_name}.")  # Warn user in Streamlit
-        return  # Exit early if insufficient data
+    if len(player_stats) < recent_check + 1:  # Ensures there is enough games worth of data to be compared for each player
+        st.warning(f"Not enough games to analyze trend for {player_name}.")  # Displays an error if there is not enough data to comeplete analysis
+        return  # If there is not enough data, then exits code block early
 
     # Split into recent vs. baseline games
     recent_games = player_stats.tail(recent_check)  # Take the last `recent_check` rows as the recent games
@@ -134,6 +135,7 @@ def analyze_trend(player_stats, player_name, selected_stats, recent_check):  # D
 
 
 
+
 #Building Streamlit UI Inputs
 
 # Title and Description
@@ -165,17 +167,19 @@ selected_stats = st.multiselect(
     options=["PTS", "REB", "AST", "FG_PCT"],
     default=["PTS", "REB", "AST", "FG_PCT"])
 
+
+
 # Main action button
 if st.button('Analyze'):
- 
+
   original_name1 = None
   original_name2 = None
 
   # playerX_id tells you if there’s a valid NBA player,
-  # original_nameX holds the official spelling to label tables and charts 
-    
+  # original_nameX holds the official spelling to label tables and charts
+
   if player1:
-    player1_id, original_name1 = find_player_id(player1)  # Gets player 1's ID 
+    player1_id, original_name1 = find_player_id(player1)  # Gets player 1's ID
 
     if player2:
       player2_id, original_name2 = find_player_id(player2)  # Gets player 2's ID
@@ -195,7 +199,9 @@ if st.button('Analyze'):
           player2_stats = get_recent_stats(player2_id, num_games)  # Get stats for Player 2
           player2_stats["Player"] = original_name2  # Label Player 2's stats
 
-      # Show player headshots side-by-side
+
+
+# Show player headshots side-by-side
       img_col1, img_col2 = st.columns(2)  # Two side-by-side image columns
 
       with img_col1:
@@ -205,7 +211,9 @@ if st.button('Analyze'):
           with img_col2:
               st.image(get_player_image_url(player2_id), caption=player2, use_container_width=True)  # Display Player 2 photo
 
-      # Show player stats in side by side
+
+
+# Show player stats in side by side
       stats_col1, stats_col2 = st.columns(2)
 
       with stats_col1:
@@ -216,50 +224,56 @@ if st.button('Analyze'):
               st.subheader(f"{original_name2}'s Stats")  # Table heading for Player 2
               st.dataframe(player2_stats)  # Table for Player 2 stats
 
-      # Trend Analysis
+
+
+# Trend Analysis
       analyze_trend(player1_stats, original_name1, selected_stats, recent_check)  # Run trend logic for Player 1
       if player2_id:
           analyze_trend(player2_stats, original_name2, selected_stats, recent_check)  # Run trend logic for Player 2
 
-      # Plotting each player's stats
-      plot_col1, plot_col2 = st.columns(2)  # Create side-by-side graph columns
+
+
+# Plotting each player's stats
+      plot_col1, plot_col2 = st.columns(2)  # Create a side-by-side graph that has 2 columns
 
       with plot_col1:
-          st.subheader(f"{original_name1}'s Stat Trends")  # Heading above Player 1 graph
+          st.subheader(f"{player1}'s Stat Trends")  # Heading above Player 1 graph
           plot_df1 = player1_stats.melt(id_vars="GAME_DATE", value_vars=selected_stats, var_name="Stat", value_name="Value")  # Reformat Player 1 stats
           fig1 = px.bar(plot_df1, x="GAME_DATE", y="Value", color="Stat", barmode="group")  # Build bar chart for Player 1
-          fig1.update_layout(title=f"{original_name1} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")  # Customize labels
-          st.plotly_chart(fig1)  # Show Player 1 chart 
-      
-            # Extra FG% Line Chart for Player 1
+          fig1.update_layout(title=f"{player1} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")  # Customize labels
+          st.plotly_chart(fig1)  # Show Player 1 chart
+          
+
+# Extra FG% Line Chart for Player 1
       if "FG_PCT" in selected_stats and "FG_PCT" in player1_stats.columns:
-          st.subheader(f"{original_name1}'s Field Goal Percentage Trend")
-          fg_chart1 = px.line(
-              player1_stats,
-              x="GAME_DATE",
-              y="FG_PCT",
-              title=f"{original_name1} - FG% Over Last {num_games} Games",
-              markers=True)
-          fg_chart1.update_layout(xaxis_title="Game Date", yaxis_title="FG%", hovermode="x unified")
-          st.plotly_chart(fg_chart1)
+          st.subheader(f"{player1}'s Field Goal Percentage Trend")
+          fg_chart1 = px.line( #sets the graph to a line graph
+              player1_stats, #This shows were plotting the stats for player 1
+              x="GAME_DATE", #sets title of x-axis
+              y="FG_PCT", #sets title of y-axis
+              title=f"{player1} - FG% Over Last {num_games} Games", #This sets the title of the graph
+              markers=True) #This allows the graph to show seperate points for each game
+          fg_chart1.update_layout(xaxis_title="Game Date", yaxis_title="FG%", hovermode="x unified") #Customizes the layout of the chart
+          st.plotly_chart(fg_chart1) #This tells streamlit to display the plotly chart
 
 
-      if player2_id:
+      if player2_id: #Checks if a second player has been entered
           with plot_col2:
-              st.subheader(f"{original_name2}'s Stat Trends")  # Heading above Player 2 graph
+              st.subheader(f"{player2}'s Stat Trends")  # Heading above Player 2 graph
               plot_df2 = player2_stats.melt(id_vars="GAME_DATE", value_vars=selected_stats, var_name="Stat", value_name="Value")  # Reformat Player 2 stats
               fig2 = px.bar(plot_df2, x="GAME_DATE", y="Value", color="Stat", barmode="group")  # Build bar chart for Player 2
-              fig2.update_layout(title=f"{original_name2} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")  # Customize labels
+              fig2.update_layout(title=f"{player2} - Last {num_games} Games", xaxis_title="Game Date", yaxis_title="Stat Value")  # Customize labels
               st.plotly_chart(fig2)  # Show Player 2 chart
-                    # Extra FG% Line Chart for Player 2
-          if "FG_PCT" in selected_stats and "FG_PCT" in player2_stats.columns:
-              st.subheader(f"{original_name2}'s Field Goal Percentage Trend")
-              fg_chart2 = px.line(
-                  player2_stats,
-                  x="GAME_DATE",
-                  y="FG_PCT",
-                  title=f"{original_name2} - FG% Over Last {num_games} Games",
-                  markers=True)
-              fg_chart2.update_layout(xaxis_title="Game Date", yaxis_title="FG%", hovermode="x unified")
-              st.plotly_chart(fg_chart2)
 
+
+# Extra FG% Line Chart for Player 2
+          if "FG_PCT" in selected_stats and "FG_PCT" in player2_stats.columns: #Continue with the code if player 2 is entered
+              st.subheader(f"{player2}'s Field Goal Percentage Trend") #Sets a subheading
+              fg_chart2 = px.line( #Sets the graph to a line graph
+                  player2_stats, #This shows that were plotting the stats for player 2
+                  x="GAME_DATE", #Sets x-axis title
+                  y="FG_PCT",  #Sets y-axis title
+                  title=f"{player2} - FG% Over Last {num_games} Games", #Sets title of the of the graph
+                  markers=True) #This allows the graph to show seperate points for each game
+              fg_chart2.update_layout(xaxis_title="Game Date", yaxis_title="FG%", hovermode="x unified") #Customizes the layout of the chart
+              st.plotly_chart(fg_chart2) #This tells streamlit to display the plotly chart

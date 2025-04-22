@@ -3,6 +3,3 @@ plotly
 nba_api
 pandas
 requests
-unicodedata
-re
-datetime

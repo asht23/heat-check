@@ -108,7 +108,6 @@ def analyze_trend(player_stats, player_name, selected_stats, recent_check):  # D
     baseline_avg = baseline_games[selected_stats].mean()  # Compute mean of each selected stat over baseline games
     baseline_std = baseline_games[selected_stats].std()  # Compute standard deviation for baseline stats
 
-    threshold = 0.05  # Define a 5% threshold for change (not used in this version)
     comments = []  # Initialize list to collect trend comments
 
     # Loop through each selected stat

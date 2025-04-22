@@ -204,11 +204,11 @@ if st.button('Analyze'):
       img_col1, img_col2 = st.columns(2)  # Two side-by-side image columns
 
       with img_col1:
-          st.image(get_player_image_url(player1_id), caption=player1, use_container_width=True)  # Display Player 1 photo
+          st.image(get_player_image_url(player1_id), caption=original_name1, use_container_width=True)  # Display Player 1 photo
 
       if player2_id:
           with img_col2:
-              st.image(get_player_image_url(player2_id), caption=player2, use_container_width=True)  # Display Player 2 photo
+              st.image(get_player_image_url(player2_id), caption=original_name2, use_container_width=True)  # Display Player 2 photo
 
 
 
